@@ -74,13 +74,32 @@ None exported by default.
 
 Usage:
 
- my %hash    = hash_subset   (\%hash, \@keys);
- my $hashref = hashref_subset(\%hash, \@keys);
- my %hash    = hash_subset   (\%hash, \%another_hash);
- my $hashref = hashref_subset(\%hash, \%another_hash);
+ my %subset  = hash_subset   (\%hash, \@keys);
+ my $subset  = hashref_subset(\%hash, \@keys);
+ my %subset  = hash_subset   (\%hash, \%another_hash);
+ my $subset  = hashref_subset(\%hash, \%another_hash);
 
 Produce subset of C<%hash>, returning the subset hash (or hashref, in the case
 of C<hashref_subset> function).
+
+Perl lets you produce a hashref using the slice notation:
+
+ my %subset = %hash{"b","c","d"};
+
+The difference with this routine is: 1) hash slice is only available since perl
+5.20 (in previous versions, only array slices is available); 2) when the key
+does not exist in the array, perl will create it for you with C<undef> as the
+value, so:
+
+ my %hash   = (a=>1, b=>2, c=>3);
+ my %subset = %hash{"b","c","d"}; # => (b=>2, c=>3, d=>undef)
+
+So basically C<hash_subset> is equivalent to:
+
+ my %subset = %hash{grep {exists $hash{$_}} "b","c","d"}; # => (b=>2, c=>3, d=>undef)
+
+and available for perl earlier than 5.20.
+
 
 =head2 hashref_subset
 
