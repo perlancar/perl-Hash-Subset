@@ -12,39 +12,39 @@ our @EXPORT_OK = qw(hash_subset hashref_subset);
 sub hash_subset {
     my ($hash, $keys_src) = @_;
 
-    my %res;
+    my %subset;
     my $ref = ref $keys_src;
     if ($ref eq 'ARRAY') {
         for (@$keys_src) {
-            $res{$_} = $hash->{$_} if exists $hash->{$_};
+            $subset{$_} = $hash->{$_} if exists $hash->{$_};
         }
     } elsif ($ref eq 'HASH') {
         for (keys %$keys_src) {
-            $res{$_} = $hash->{$_} if exists $hash->{$_};
+            $subset{$_} = $hash->{$_} if exists $hash->{$_};
         }
     } else {
         die "Second argument (keys_src) must be a hashref/arrayref";
     }
-    %res;
+    %subset;
 }
 
 sub hashref_subset {
     my ($hash, $keys_src) = @_;
 
-    my $res = {};
+    my $subset = {};
     my $ref = ref $keys_src;
     if ($ref eq 'ARRAY') {
         for (@$keys_src) {
-            $res->{$_} = $hash->{$_} if exists $hash->{$_};
+            $subset->{$_} = $hash->{$_} if exists $hash->{$_};
         }
     } elsif ($ref eq 'HASH') {
         for (keys %$keys_src) {
-            $res->{$_} = $hash->{$_} if exists $hash->{$_};
+            $subset->{$_} = $hash->{$_} if exists $hash->{$_};
         }
     } else {
         die "Second argument (keys_src) must be a hashref/arrayref";
     }
-    $res;
+    $subset;
 }
 
 1;
@@ -55,12 +55,12 @@ sub hashref_subset {
  use Hash::Subset qw(hash_subset hashref_subset);
 
  # using keys specified in an array
- my %h = hash_subset   ({a=>1, b=>2, c=>3}, ['b','c','d']); # => (b=>2, c=>3)
- my $h = hashref_subset({a=>1, b=>2, c=>3}, ['b','c','d']); # => {b=>2, c=>3}
+ my %subset = hash_subset   ({a=>1, b=>2, c=>3}, ['b','c','d']); # => (b=>2, c=>3)
+ my $subset = hashref_subset({a=>1, b=>2, c=>3}, ['b','c','d']); # => {b=>2, c=>3}
 
  # using keys specified in another hash
- my %h = hash_subset   ({a=>1, b=>2, c=>3}, {b=>20, c=>30, d=>40}); # => (b=>2, c=>3)
- my $h = hashref_subset({a=>1, b=>2, c=>3}, {b=>20, c=>30, d=>40}); # => {b=>2, c=>3}
+ my %subset = hash_subset   ({a=>1, b=>2, c=>3}, {b=>20, c=>30, d=>40}); # => (b=>2, c=>3)
+ my $subset = hashref_subset({a=>1, b=>2, c=>3}, {b=>20, c=>30, d=>40}); # => {b=>2, c=>3}
 
 
 =head1 DESCRIPTION
