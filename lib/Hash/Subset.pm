@@ -82,21 +82,21 @@ Usage:
 Produce subset of C<%hash>, returning the subset hash (or hashref, in the case
 of C<hashref_subset> function).
 
-Perl lets you produce a hashref using the slice notation:
+Perl lets you produce a hash subset using the hash slice notation:
 
  my %subset = %hash{"b","c","d"};
 
-The difference with this routine is: 1) hash slice is only available since perl
-5.20 (in previous versions, only array slices is available); 2) when the key
+The difference with C<hash_subset> is: 1) hash slice is only available since
+perl 5.20 (in previous versions, only array slice is available); 2) when the key
 does not exist in the array, perl will create it for you with C<undef> as the
-value, so:
+value:
 
  my %hash   = (a=>1, b=>2, c=>3);
  my %subset = %hash{"b","c","d"}; # => (b=>2, c=>3, d=>undef)
 
 So basically C<hash_subset> is equivalent to:
 
- my %subset = %hash{grep {exists $hash{$_}} "b","c","d"}; # => (b=>2, c=>3, d=>undef)
+ my %subset = %hash{grep {exists $hash{$_}} "b","c","d"}; # => (b=>2, c=>3)
 
 and available for perl earlier than 5.20.
 
