@@ -54,11 +54,11 @@ sub hashref_subset {
 
  use Hash::Subset qw(hash_subset hashref_subset);
 
- # using keys specified from an array
+ # using keys specified in an array
  my %h = hash_subset   ({a=>1, b=>2, c=>3}, ['b','c','d']); # => (b=>2, c=>3)
  my $h = hashref_subset({a=>1, b=>2, c=>3}, ['b','c','d']); # => {b=>2, c=>3}
 
- # using keys specified from another hash
+ # using keys specified in another hash
  my %h = hash_subset   ({a=>1, b=>2, c=>3}, {b=>20, c=>30, d=>40}); # => (b=>2, c=>3)
  my $h = hashref_subset({a=>1, b=>2, c=>3}, {b=>20, c=>30, d=>40}); # => {b=>2, c=>3}
 
