@@ -22,8 +22,12 @@ sub hash_subset {
         for (keys %$keys_src) {
             $subset{$_} = $hash->{$_} if exists $hash->{$_};
         }
+    } elsif ($ref eq 'CODE') {
+        for (keys %$hash) {
+            $subset{$_} = $hash->{$_} if $keys_src->($_, $hash->{$_});
+        }
     } else {
-        die "Second argument (keys_src) must be a hashref/arrayref";
+        die "Second argument (keys_src) must be a hashref/arrayref/coderef";
     }
     %subset;
 }
@@ -41,8 +45,12 @@ sub hashref_subset {
         for (keys %$keys_src) {
             $subset->{$_} = $hash->{$_} if exists $hash->{$_};
         }
+    } elsif ($ref eq 'CODE') {
+        for (keys %$hash) {
+            $subset->{$_} = $hash->{$_} if $keys_src->($_, $hash->{$_});
+        }
     } else {
-        die "Second argument (keys_src) must be a hashref/arrayref";
+        die "Second argument (keys_src) must be a hashref/arrayref/coderef";
     }
     $subset;
 }
@@ -61,6 +69,10 @@ sub hashref_subset {
  # using keys specified in another hash
  my %subset = hash_subset   ({a=>1, b=>2, c=>3}, {b=>20, c=>30, d=>40}); # => (b=>2, c=>3)
  my $subset = hashref_subset({a=>1, b=>2, c=>3}, {b=>20, c=>30, d=>40}); # => {b=>2, c=>3}
+
+ # filtering keys using a coderef
+ my %subset = hash_subset   ({a=>1, b=>2, c=>3}, sub {$_[0] =~ /[bc]/}); # => (b=>2, c=>3)
+ my $subset = hashref_subset({a=>1, b=>2, c=>3}, sub {$_[0] =~ /[bc]/}); # => {b=>2, c=>3}
 
 A use case is when you use hash arguments:
 
@@ -133,8 +145,13 @@ Usage:
 
  my %subset  = hash_subset   (\%hash, \@keys);
  my $subset  = hashref_subset(\%hash, \@keys);
+
  my %subset  = hash_subset   (\%hash, \%another_hash);
  my $subset  = hashref_subset(\%hash, \%another_hash);
+
+ # filter_sub is called with args ($key, $value) and return true when key should be included
+ my %subset  = hash_subset   (\%hash, \&filter_sub);
+ my $subset  = hashref_subset(\%hash, \&filter_sub);
 
 Produce subset of C<%hash>, returning the subset hash (or hashref, in the case
 of C<hashref_subset> function).
