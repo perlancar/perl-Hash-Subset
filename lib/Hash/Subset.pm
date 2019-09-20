@@ -120,6 +120,8 @@ If you use L<Rinci> metadata in your code, this will come in handy, for example:
 
 =head1 DESCRIPTION
 
+Keywords: hash arguments, hash picking, hash grep, hash filtering
+
 
 =head1 FUNCTIONS
 
