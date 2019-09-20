@@ -73,7 +73,7 @@ A use case is when you use hash arguments:
      my %args = @_; # known arguments: all func1 arguments as well as qux, quux
 
      # call func1 with all arguments passed to us
-     my $res = func1(hash_subset(\%args, [qw/foo bar baz/]);
+     my $res = func1(hash_subset(\%args, [qw/foo bar baz/]));
 
      # postprocess result
      ...
