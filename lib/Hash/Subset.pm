@@ -108,6 +108,7 @@ See L</hash_subset>.
 
 =head1 SEE ALSO
 
-Some other hash utilities: L<Hash::MostUtils>
+L<Hash::Util::Pick> also allows you to create a hash subset by specifying the
+wanted keys in a list or via filtering using a coderef.
 
 =cut
