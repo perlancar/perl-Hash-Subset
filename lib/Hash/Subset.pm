@@ -62,6 +62,61 @@ sub hashref_subset {
  my %subset = hash_subset   ({a=>1, b=>2, c=>3}, {b=>20, c=>30, d=>40}); # => (b=>2, c=>3)
  my $subset = hashref_subset({a=>1, b=>2, c=>3}, {b=>20, c=>30, d=>40}); # => {b=>2, c=>3}
 
+A use case is when you use hash arguments:
+
+ sub func1 {
+     my %args = @_; # known arguments: foo, bar, baz
+     ...
+ }
+
+ sub func2 {
+     my %args = @_; # known arguments: all func1 arguments as well as qux, quux
+
+     # call func1 with all arguments passed to us
+     my $res = func1(hash_subset(\%args, [qw/foo bar baz/]);
+
+     # postprocess result
+     ...
+ }
+
+If you use L<Rinci> metadata in your code, this will come in handy, for example:
+
+ my %common_args = (
+     foo => {...},
+     bar => {...},
+     baz => {...},
+ );
+
+ $SPEC{func1} = {
+    v => 1.1,
+    args => {
+        %common_args,
+    },
+ };
+ sub func1 {
+     my %args = @_;
+     ...
+ }
+
+ $SPEC{func2} = {
+    v => 1.1,
+    args => {
+        %common_args,
+        # func2 supports all func1 arguments plus a couple of others
+        qux  => { ... },
+        quux => { ... },
+    },
+ };
+ sub func2 {
+     my %args = @_;
+
+     # call func1 with all arguments passed to us
+     my $res = func1(hash_subset(\%args, $SPEC{func1}{args}));
+
+     # postprocess result
+     ...
+ }
+
 
 =head1 DESCRIPTION
 
