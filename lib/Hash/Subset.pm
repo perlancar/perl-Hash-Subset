@@ -109,6 +109,10 @@ See L</hash_subset>.
 =head1 SEE ALSO
 
 L<Hash::Util::Pick> also allows you to create a hash subset by specifying the
-wanted keys in a list or via filtering using a coderef.
+wanted keys in a list or via filtering using a coderef. This XS module should
+perhaps be preferred over Hash::Subset for its performance, but there are some
+cases where you cannot use XS modules.
+
+See some benchmarks in L<Bencher::Scenarios::HashPicking>.
 
 =cut
