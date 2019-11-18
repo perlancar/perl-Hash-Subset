@@ -174,16 +174,18 @@ So basically C<hash_subset> is equivalent to:
 
 and available for perl earlier than 5.20.
 
-
 =head2 hashref_subset
 
 See L</hash_subset>.
 
+=head2 hash_subset
+
+
 
 =head1 SEE ALSO
 
-L<Tie::Subset::Hash> to create a tied version of a hash subset. Changes to the
-subset will be reflected in the original hash, and vice versa.
+L<Tie::Subset::Hash> to create a tied version of a hash subset (a "view" of a
+subset of a hash).
 
 L<Hash::Util::Pick> also allows you to create a hash subset by specifying the
 wanted keys in a list or via filtering using a coderef. This XS module should
