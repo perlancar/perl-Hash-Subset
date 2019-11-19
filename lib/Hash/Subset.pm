@@ -230,6 +230,12 @@ See L</hash_subset_without>.
 
 =head1 SEE ALSO
 
+L<Hash::MoreUtils> provides various ways to create hash subset ("slice") through
+its C<slice_*> functions. It does not provide way to specify subset keys via the
+keys of C<%another_hash>, but that can be done trivially using C<< keys
+%another_hash >>. Hash::Subset is currently more lightweight than
+Hash::MoreUtils.
+
 L<Tie::Subset::Hash> to create a tied version of a hash subset (a "view" of a
 subset of a hash).
 
