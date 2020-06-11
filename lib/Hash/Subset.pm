@@ -1,6 +1,8 @@
 package Hash::Subset;
 
+# AUTHORITY
 # DATE
+# DIST
 # VERSION
 
 use strict;
@@ -15,47 +17,50 @@ our @EXPORT_OK = qw(
                );
 
 sub _routine {
-    my ($which, $hash, $keys_src) = @_;
+    my ($which, $hash, @keys_srcs) = @_;
 
     my $reverse = $which =~ /_without\z/;
     my $return_ref = $which =~ /\Ahashref_/;
 
     my %subset;
-    my $ref = ref $keys_src;
-    if ($ref eq 'ARRAY') {
-        if ($reverse) {
-            for my $key (keys %$hash) {
-                $subset{$key} = $hash->{$key}
-                    unless grep { $key eq $_ } @$keys_src;
+    %subset = %$hash if $reverse;
+
+    for my $keys_src (@keys_srcs) {
+        my $ref = ref $keys_src;
+        if ($ref eq 'ARRAY') {
+            if ($reverse) {
+                for (@$keys_src) {
+                    delete $subset{$_};
+                }
+            } else {
+                for (@$keys_src) {
+                    $subset{$_} = $hash->{$_} if exists $hash->{$_};
+                }
+            }
+        } elsif ($ref eq 'HASH') {
+            if ($reverse) {
+                for (keys %$keys_src) {
+                    delete $subset{$_};
+                }
+            } else {
+                for (keys %$keys_src) {
+                    $subset{$_} = $hash->{$_} if exists $hash->{$_};
+                }
+            }
+        } elsif ($ref eq 'CODE') {
+            if ($reverse) {
+                for (keys %$hash) {
+                    delete $subset{$_} if $keys_src->($_, $hash->{$_});
+                }
+            } else {
+                for (keys %$hash) {
+                    $subset{$_} = $hash->{$_} if $keys_src->($_, $hash->{$_});
+                }
             }
         } else {
-            for (@$keys_src) {
-                $subset{$_} = $hash->{$_} if exists $hash->{$_};
-            }
+            die "Key source ($keys_src) must be a hashref/arrayref/coderef";
         }
-    } elsif ($ref eq 'HASH') {
-        if ($reverse) {
-            for (keys %$hash) {
-                $subset{$_} = $hash->{$_} unless exists $keys_src->{$_};
-            }
-        } else {
-            for (keys %$keys_src) {
-                $subset{$_} = $hash->{$_} if exists $hash->{$_};
-            }
-        }
-    } elsif ($ref eq 'CODE') {
-        if ($reverse) {
-            for (keys %$hash) {
-                $subset{$_} = $hash->{$_} unless $keys_src->($_, $hash->{$_});
-            }
-        } else {
-            for (keys %$hash) {
-                $subset{$_} = $hash->{$_} if $keys_src->($_, $hash->{$_});
-            }
-        }
-    } else {
-        die "Second argument (keys_src) must be a hashref/arrayref/coderef";
-    }
+    } # for $keys_src
 
     if ($return_ref) {
         return \%subset;
@@ -89,17 +94,17 @@ sub hashref_subset_without { _routine('hashref_subset_without', @_) }
  my %subset = hash_subset   ({a=>1, b=>2, c=>3}, {b=>20, c=>30, d=>40}); # => (b=>2, c=>3)
  my $subset = hashref_subset({a=>1, b=>2, c=>3}, {b=>20, c=>30, d=>40}); # => {b=>2, c=>3}
 
- # excluding keys specified in an array
- my %subset = hash_subset_without   ({a=>1, b=>2, c=>3}, ['b','c','d']); # => (a=>1)
- my $subset = hashref_subset_without({a=>1, b=>2, c=>3}, ['b','c','d']); # => {a=>1}
-
- # excluding keys specified in another hash
- my %subset = hash_subset_without   ({a=>1, b=>2, c=>3}, {b=>20, c=>30, d=>40}); # => (a=>1)
- my $subset = hashref_subset_without({a=>1, b=>2, c=>3}, {b=>20, c=>30, d=>40}); # => {a=>1}
-
  # filtering keys using a coderef
  my %subset = hash_subset   ({a=>1, b=>2, c=>3}, sub {$_[0] =~ /[bc]/}); # => (b=>2, c=>3)
  my $subset = hashref_subset({a=>1, b=>2, c=>3}, sub {$_[0] =~ /[bc]/}); # => {b=>2, c=>3}
+
+ # multiple filters: array, hash, coderef
+ my %subset = hash_subset   ({a=>1, b=>2, c=>3, d=>4}, {c=>1}, [qw/b/], sub {$_[0] =~ /[bcd]/}); # => (b=>2, c=>3, d=>4)
+ my $subset = hashref_subset({a=>1, b=>2, c=>3, d=>4}, {c=>1}, [qw/b/], sub {$_[0] =~ /[bcd]/}); # => {b=>2, c=>3, d=>4}
+
+ # excluding keys
+ my %subset = hash_subset_without   ({a=>1, b=>2, c=>3}, ['b','c','d']); # => (a=>1)
+ my $subset = hashref_subset_without({a=>1, b=>2, c=>3}, ['b','c','d']); # => {a=>1}
 
 A use case is when you use hash arguments:
 
@@ -171,15 +176,11 @@ None exported by default.
 
 Usage:
 
- my %subset  = hash_subset   (\%hash, \@keys);
- my $subset  = hashref_subset(\%hash, \@keys);
+ my %subset  = hash_subset   (\%hash, @keys_srcs);
+ my $subset  = hashref_subset(\%hash, @keys_srcs);
 
- my %subset  = hash_subset   (\%hash, \%another_hash);
- my $subset  = hashref_subset(\%hash, \%another_hash);
-
- # filter_sub is called with args ($key, $value) and return true when key should be included
- my %subset  = hash_subset   (\%hash, \&filter_sub);
- my $subset  = hashref_subset(\%hash, \&filter_sub);
+Where @keys_src elements can be arrayref, hashref, or coderef. Coderef will be
+called with args($key, $value) and return true when key should be included.
 
 Produce subset of C<%hash>, returning the subset hash (or hashref, in the case
 of C<hashref_subset> function).
@@ -200,7 +201,8 @@ So basically C<hash_subset> is equivalent to:
 
  my %subset = %hash{grep {exists $hash{$_}} "b","c","d"}; # => (b=>2, c=>3)
 
-and available for perl earlier than 5.20.
+and available for perl earlier than 5.20. In addition to that, hash_subset()
+accepts arrayref as well as hashref/coderef, and several of them.
 
 =head2 hashref_subset
 
@@ -208,20 +210,8 @@ See L</hash_subset>.
 
 =head2 hash_subset_without
 
-Usage:
-
- my %subset  = hash_subset_without   (\%hash, \@keys);
- my $subset  = hashref_subset_without(\%hash, \@keys);
-
- my %subset  = hash_subset_without   (\%hash, \%another_hash);
- my $subset  = hashref_subset_without(\%hash, \%another_hash);
-
- # filter_sub is called with args ($key, $value) and return true when key should be excluded
- my %subset  = hash_subset_without   (\%hash, \&filter_sub);
- my $subset  = hashref_subset_without(\%hash, \&filter_sub);
-
-Like L</hash_subset>, but reverses the logic. Will create subset that only
-includes keys not in the specified array/hash.
+Like L</hash_subset>, but reverses the logic: will create subset that only
+includes keys not in the specified arrays/hashes/coderefs.
 
 =head2 hashref_subset_without
 
